@@ -9,8 +9,8 @@ const app=express();//server
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/booksArr',router);
-app.use('/userArr',userRouter)
+app.use('/Books',router);
+app.use('/Users',userRouter)
 
 const port = process.env.PORT ?? 3000;
 app.listen(port, () => {

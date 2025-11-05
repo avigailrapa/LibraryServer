@@ -1,8 +1,4 @@
-
-import { Router } from "express";
 import userArr from "../user.js"; 
-const userRouter = Router();
-
 
 export const login=(req, res) => {
   const { id, name, email, password } = req.body;
@@ -38,6 +34,5 @@ export const signin=(req, res) => {
     res.status(200).json({ message: "Login successful", user });
 }
 
-export default userRouter;
 
 

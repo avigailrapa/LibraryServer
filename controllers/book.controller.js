@@ -1,7 +1,7 @@
-
+import booksArr from "../db.js";
 //קבלת כל הספרים
 export const getAllBooks=(req, res) => {
-  if(!booksArr||booksArr.lenght==0)
+  if(!booksArr||booksArr.length==0)
       return res.status(404).send("No Books")
     const { page = 1, limit = 5} = req.query;
     const result = booksArr.slice((page - 1) * limit, page * limit);             
@@ -90,8 +90,6 @@ export const deleteBook=(req, res) => {
   const deleted = booksArr.splice(index, 1);
   res.json(deleted[0]);
 }
-
-export default router
 
 
 
