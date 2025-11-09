@@ -1,69 +1,75 @@
 import booksArr from "../db.js";
-//קבלת כל הספרים
-export const getAllBooks=(req, res) => {
-  if(!booksArr||booksArr.length==0)
-      return res.status(404).send("No Books")
-    const { page = 1, limit = 5} = req.query;
-    const result = booksArr.slice((page - 1) * limit, page * limit);             
-    res.json(result);
-}
 
-//קבלת ספר לפי id 
-export const getBooksById=(req,res)=>{
-    const book=booksArr.find(x=>x.id === +req.params.id)
-    if(!book)  return res.status(404).send("Book not found")
-    res.json(book)
-}
+//קבלת כל הספרים
+export const getAllBooks = (req, res, next) => {
+  const { page = 1, limit = 5 } = req.query;
+  const result = booksArr.slice((page - 1) * limit, page * limit);
+  res.json(result); 
+};
+
+//קבלת ספר לפי id
+export const getBooksById = (req, res, next) => {
+  const book = booksArr.find(x => x.id === +req.params.id);
+  if (!book) {
+    return next({ status: 404, message: `Book ${req.params.id} not found` });
+  }
+  res.json(book);
+};
 
 //קבלת ספר לפי שם
-export const getBooksByName=(req, res) => {
-    const nameQuery = req.query.name;
-     const book = booksArr.find(
-      b => b.name.toLowerCase() === nameQuery.toLowerCase()
-    );
-    if (!book) return res.status(404).send("Book not found");
-    return res.json(book);
+export const getBooksByName = (req, res, next) => {
+  const nameQuery = req.query.name;
+  const book = booksArr.find(b => b.name.toLowerCase() === nameQuery.toLowerCase());
+  if (!book) {
+    return next({ status: 404, message: `Book ${nameQuery} not found` });
   }
-
+  res.json(book);
+};
 
 //הוספת ספר
-export const addBook=(req, res) => {
+export const addBook = (req, res, next) => {
   const { id, name, author, year } = req.body;
   if (!id || !name || !author) {
-    return res.status(400).send("Missing required fields");
+    return next({ status: 400, message: "Missing required fields" });
   }
 
   const exists = booksArr.some(b => b.id === id);
   if (exists) {
-    return res.status(409).send("Book with this ID already exists");
+    return next({ status: 409, message: `Book with ID ${id} already exists` });
   }
 
   booksArr.push(req.body);
   res.status(201).json({ message: "Book added successfully" });
-}
+};
 
 //שינוי פרטי ספר
-export const updateBook=(req, res) => {   
-     const book = booksArr.find(x => x.id === +req.params.id);
-    if (!book) return res.status(404).send("Book not found");
+export const updateBook = (req, res, next) => {
+  const book = booksArr.find(x => x.id === +req.params.id);
+  if (!book) {
+    return next({ status: 404, message: `Book ${req.params.id} not found` });
+  }
 
-    
-    if (req.body.name !== undefined) book.name = req.body.name;
-    if (req.body.author !== undefined) book.author = req.body.author;
-    if (req.body.year !== undefined) book.year = req.body.year;
-    if (req.body.isborrow !== undefined) book.isborrow = req.body.isborrow;
-    if (req.body.lendingArr !== undefined) book.lendingArr = req.body.lendingArr;
+  if (+req.params.id !== req.body.id) {
+    return next({ status: 409, message: "ID in body does not match ID in params" });
+  }
 
-    res.json(book);
-}
+  book.name = req.body.name || book.name;
+  book.author = req.body.author || book.author;
+  book.year = req.body.year ?? book.year;
+  book.isborrow = req.body.isborrow ?? book.isborrow;
+  book.lendingArr = req.body.lendingArr || book.lendingArr;
+
+  res.json(book);
+};
 
 //ביצוע השאלה
-export const borrowingBook=(req, res) => {   
-    const book = booksArr.find(x => x.id === +req.params.id);
-  if (!book) return res.status(404).send("Book not found");
-  
+export const borrowingBook = (req, res, next) => {
+  const book = booksArr.find(x => x.id === +req.params.id);
+  if (!book) {
+    return next({ status: 404, message: `Book ${req.params.id} not found` });
+  }
   if (book.isborrow) {
-    return res.status(400).send("Book is already borrowed");
+    return next({ status: 400, message: "Book is already borrowed" });
   }
 
   book.isborrow = true;
@@ -71,39 +77,30 @@ export const borrowingBook=(req, res) => {
   const today = new Date();
   book.lendingArr.push({ date: today, idCustomer });
   res.json(book);
-}
+};
 
 //ביצוע החזרה
-export const returningBook=(req, res) => {   
+export const returningBook = (req, res, next) => {
   const book = booksArr.find(x => x.id === +req.params.id);
-  if (!book) return res.status(404).send("Book not found");
-  if (!book.isborrow) return res.status(400).send("Book is not currently borrowed");
-  
+  if (!book) {
+    return next({ status: 404, message: `Book ${req.params.id} not found` });
+  }
+  if (!book.isborrow) {
+    return next({ status: 400, message: "Book is not currently borrowed" });
+  }
+
   book.isborrow = false;
   res.json(book);
-}
+};
+
 //מחיקת ספר לפי id
-export const deleteBook=(req, res) => {   
+export const deleteBook = (req, res, next) => {
   const id = +req.params.id;
   const index = booksArr.findIndex(x => x.id === id);
-  if (index === -1) return res.status(404).send("Book not found");
+  if (index === -1) {
+    return next({ status: 404, message: `Book ${req.params.id} not found` });
+  }
+
   const deleted = booksArr.splice(index, 1);
-  res.json(deleted[0]);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
+  res.status(204).end(); 
+};
