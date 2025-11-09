@@ -7,20 +7,17 @@ const router=Router();
 //קבלת כל הספרים
 router.get('/',getAllBooks)
 
-
 //קבלת ספר לפי id 
 router.get('/:id',getBooksById)
 
 //קבלת ספר לפי שם
-router.get('/',getBooksByName)
-
+router.get('/search/:name', getBooksByName);
 
 //הוספת ספר
 router.post('/',addBook)
 
 //שינוי פרטי ספר
 router.patch('/:id',updateBook)
-
 
 //ביצוע השאלה
 router.patch('/:id/:idCustomer',borrowingBook)

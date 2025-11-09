@@ -18,7 +18,7 @@ export const getBooksById = (req, res, next) => {
 
 //קבלת ספר לפי שם
 export const getBooksByName = (req, res, next) => {
-  const nameQuery = req.query.name;
+  const nameQuery = req.params.name;
   const book = booksArr.find(b => b.name.toLowerCase() === nameQuery.toLowerCase());
   if (!book) {
     return next({ status: 404, message: `Book ${nameQuery} not found` });
