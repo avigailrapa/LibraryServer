@@ -8,12 +8,12 @@
 
 export const errorsHandler = (err, req, res, next) => {
   const status = err.status ?? 500;
-  const message = err.message ?? "server error";
-  res.status(status).json({ error: message, type: "server error" });
+  const { message = 'Server Error!' } = err;
+  res.status(status).json({ error:{ massage: message}});
 };
 
 
 export const notFound=(req,res,next)=>{
-    res.status(404).json({ error: "not found", type: "client error" })    
+   next({status:404,message:`Route ${req.originalUrl} Not Found`})  
 };
     
