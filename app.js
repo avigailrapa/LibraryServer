@@ -4,11 +4,19 @@ import userRouter from './routes/user.route.js';
 import {config} from 'dotenv'
 import {addDate,addDateForGet} from './middlewares/date.middleware.js'
 import {errorsHandler,notFound} from './middlewares/errors.middleware.js'
+import cors from 'cors'
+import morgan from 'morgan';
 
 const app=express();//server
+config();
+
+app.use(morgan('dev'));
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static('public'))
 
 app.use(addDate)
 app.use(addDateForGet)

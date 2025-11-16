@@ -1,7 +1,7 @@
 import { Router } from "express";
-import booksArr from "../db.js";
 import { getAllBooks, getBooksById, getBooksByName, addBook, updateBook,borrowingBook,returningBook,deleteBook} from "../controllers/book.controller.js";
-
+import { joiValidator } from "../middlewares/joi-validator.middleware.js";
+import { bookSchemas } from "../models/book.model.js";
 const router=Router();
 
 //קבלת כל הספרים
@@ -20,8 +20,7 @@ router.post('/',addBook)
 router.patch('/:id',updateBook)
 
 //ביצוע השאלה
-router.patch('/:id/:idCustomer',borrowingBook)
-
+router.patch('/:id/:idCustomer',joiValidator(bookSchemas.borrowBook),borrowingBook)
 
 //ביצוע החזרה
 router.patch('/:id/return',returningBook)
