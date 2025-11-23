@@ -14,7 +14,7 @@ router.get('/:id',getBooksById)
 router.get('/search/:name', getBooksByName);
 
 //הוספת ספר
-router.post('/',addBook)
+router.post('/', upload.single('img'), addBook);
 
 //שינוי פרטי ספר
 router.patch('/:id',updateBook)
