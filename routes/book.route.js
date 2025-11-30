@@ -2,6 +2,8 @@ import { Router } from "express";
 import { getAllBooks, getBooksById, getBooksByName, addBook, updateBook,borrowingBook,returningBook,deleteBook} from "../controllers/book.controller.js";
 import { joiValidator } from "../middlewares/joi-validator.middleware.js";
 import { bookSchemas } from "../models/book.model.js";
+import { upload } from '../middlewares/upload-files.middleware.js';
+
 const router=Router();
 
 //קבלת כל הספרים

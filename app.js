@@ -6,10 +6,12 @@ import {addDate,addDateForGet} from './middlewares/date.middleware.js'
 import {errorsHandler,notFound} from './middlewares/errors.middleware.js'
 import cors from 'cors'
 import morgan from 'morgan';
+import { connectDB } from './config/db.js';
+
 
 const app=express();//server
 config();
-
+connectDB();
 app.use(morgan('dev'));
 app.use(cors());
 

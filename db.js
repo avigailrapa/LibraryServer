@@ -21,13 +21,4 @@ class Lending
 }
 
 
-const booksArr = [
-  new Book(1, "lion", "animals", 20, [new Lending("12/3/2025", 3)]),
-  new Book(2, "my family", "family", 50, [
-  new Lending("12/3/2022", 2),
-  new Lending("1/3/2025", 4),
-  ]),
-];
-
-
 export default booksArr;

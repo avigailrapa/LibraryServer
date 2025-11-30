@@ -1,106 +1,140 @@
-import booksArr from "../db.js";
+import { isValidObjectId } from "mongoose";
+import Book from "../models/book.model.js";
 
 //קבלת כל הספרים
-export const getAllBooks = (req, res, next) => {
+export const getAllBooks = async(req, res, next) => {
+  try{
   const { page = 1, limit = 5 } = req.query;
-  const result = booksArr.slice((page - 1) * limit, page * limit);
-  res.json(result); 
+  const result = await Book.find().skip((page - 1) * limit).limit(limit);
+  res.json(result);
+  }
+  catch(error)
+  {
+    next({});
+  }
+  
 };
 
 //קבלת ספר לפי id
-export const getBooksById = (req, res, next) => {
-  const book = booksArr.find(x => x.id === +req.params.id);
-  if (!book) {
-    return next({ status: 404, message: `Book ${req.params.id} not found` });
+export const getBooksById = async(req, res, next) => {
+  const {id}=req.params;
+  try {
+    if(!isValidObjectId(id)){
+      return next({ status: 404, message: `book ${id} not found!` }); 
+    }
+    const b=await Book.findById(id);
+    if(!b)
+    {
+      return next({ status: 404, message: `book ${id} not found!` });
+    }
+    res.json(b);
+  } catch (error) {
+    next({message:error.message});
   }
-  res.json(book);
+ 
 };
 
 //קבלת ספר לפי שם
-export const getBooksByName = (req, res, next) => {
-  const nameQuery = req.params.name;
-  const book = booksArr.find(b => b.name.toLowerCase() === nameQuery.toLowerCase());
-  if (!book) {
-    return next({ status: 404, message: `Book ${nameQuery} not found` });
+export const getBooksByName =async (req, res, next) => {
+const {name}=req.params;
+try {
+  if(!name)
+  {
+   return res.status(400).json({ message: "Name parameter is required" });
   }
-  res.json(book);
+  const result=await Book.find({name:new RegExp(name,'i')});
+  res.json(result);
+  } catch (error) {
+    next({});
+  }
 };
 
 //הוספת ספר
-export const addBook = (req, res, next) => {
-  const { id, name, author, year } = req.body;
-  if (!id || !name || !author) {
-    return next({ status: 400, message: "Missing required fields" });
-  }
-
-  const exists = booksArr.some(b => b.id === id);
-  if (exists) {
-    return next({ status: 409, message: `Book with ID ${id} already exists` });
-  }
-
-  booksArr.push(req.body);
-  res.status(201).json({ message: "Book added successfully" });
+export const addBook =async (req, res, next) => {
+  const newBook=new Book({
+    ...req.body
+  });
+  await newBook.save();
+  res.json(newBook);
 };
 
 //שינוי פרטי ספר
-export const updateBook = (req, res, next) => {
-  const book = booksArr.find(x => x.id === +req.params.id);
-  if (!book) {
-    return next({ status: 404, message: `Book ${req.params.id} not found` });
+export const updateBook = async(req, res, next) => {
+  const{ id }=req.params;
+   if(!isValidObjectId(id)){
+      return res.status(400).json({ message: "Invalid ID" });
+    }
+  try {
+    const b = await Book.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+    if (!b) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+    res.json(b);
+  } catch (error) {
+    next(error);
   }
-
-  if (+req.params.id !== req.body.id) {
-    return next({ status: 409, message: "ID in body does not match ID in params" });
-  }
-
-  book.name = req.body.name || book.name;
-  book.author = req.body.author || book.author;
-  book.year = req.body.year ?? book.year;
-  book.isborrow = req.body.isborrow ?? book.isborrow;
-  book.lendingArr = req.body.lendingArr || book.lendingArr;
-
-  res.json(book);
 };
 
 //ביצוע השאלה
-export const borrowingBook = (req, res, next) => {
-  const book = booksArr.find(x => x.id === +req.params.id);
-  if (!book) {
-    return next({ status: 404, message: `Book ${req.params.id} not found` });
+export const borrowingBook =async (req, res, next) => {
+  const {id,idCustomer}=req.params;
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ message: "Invalid book ID" });
   }
-  if (book.isborrow) {
-    return next({ status: 400, message: "Book is already borrowed" });
+  try {
+    const b=await Book.findById(id);
+    if(!b){
+      return res.status(404).json({ message: `Book ${id} not found` });
+    }
+    if (b.isborrow) {
+      return res.status(400).json({ message: "Book is already borrowed" });
+    }
+    b.isborrow = true;
+    b.lendingArr.push({ date: new Date(), idCustomer });
+    await b.save();
+    res.json(b);
   }
-
-  book.isborrow = true;
-  const idCustomer = req.params.idCustomer;
-  const today = new Date();
-  book.lendingArr.push({ date: today, idCustomer });
-  res.json(book);
+  catch (error) {
+    next(error);
+  }
 };
 
 //ביצוע החזרה
-export const returningBook = (req, res, next) => {
-  const book = booksArr.find(x => x.id === +req.params.id);
-  if (!book) {
-    return next({ status: 404, message: `Book ${req.params.id} not found` });
+export const returningBook = async(req, res, next) => {
+  const {id}=req.params;
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ message: "Invalid book ID" });
   }
-  if (!book.isborrow) {
-    return next({ status: 400, message: "Book is not currently borrowed" });
-  }
+  try {
+   const b=await Book.findById(id);
 
-  book.isborrow = false;
-  res.json(book);
-};
+    if(!b){
+      return res.status(404).json({ message: `Book ${id} not found` });
+    } 
+    if (!b.isborrow) {
+      return res.status(400).json({ message: "Book is not currently borrowed" });
+    }
+    b.isborrow = false;
+    await b.save();
+    res.json(b);
+    } catch (error) {
+    next(error);
+  }
+ };
 
 //מחיקת ספר לפי id
-export const deleteBook = (req, res, next) => {
-  const id = +req.params.id;
-  const index = booksArr.findIndex(x => x.id === id);
-  if (index === -1) {
-    return next({ status: 404, message: `Book ${req.params.id} not found` });
+export const deleteBook = async(req, res, next) => {
+    const{ id }=req.params;
+    if(!isValidObjectId(id)){
+      return res.status(400).json({ message: "Invalid ID" });
+    }
+  try {
+    const b=await Book.findByIdAndDelete(id);
+    if (!b) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+    res.json(b);
+  } catch (error) {
+    next(error);
   }
-
-  const deleted = booksArr.splice(index, 1);
-  res.status(204).end(); 
 };
