@@ -6,7 +6,7 @@ const userSchema = new Schema({
     email: { type: String, unique: true },
     password: String,
     phone: String,
-    role:{type:String,enums:['admin','user'],required:true}
+    role:{type:String,enum:['admin','user'],required:true}
 });
 
 userSchema.pre('save',function(){
@@ -44,5 +44,7 @@ export const validateUser = {
         password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
         repeat_password: Joi.ref('password'),
         phone: Joi.string().pattern(/^0?(([23489]{1}[0-9]{7})|[57]{1}[0-9]{8})+$/).required(),
+        role: Joi.string().valid('admin', 'user').required() // <-- חשוב
+
     })
 };

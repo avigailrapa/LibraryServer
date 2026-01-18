@@ -1,6 +1,16 @@
 import User from "../models/users.model.js"
 //login
 export const login = async(req, res, next) => {
+ try {
+    const {email,password}=req.body;
+    const user=await User.findOne({email});
+    if(!user|| !user.comparePasswords(password)){
+        return next({status:400,message:`email/passwors invalid`});
+    }
+    return res.json(user);         
+ } catch (error) {
+    next({message:error.message});   
+ }
 
 };
 
