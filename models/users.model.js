@@ -1,12 +1,13 @@
 import Joi from 'joi';
 import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
+import jwt from 'jsonwebtoken';
 const userSchema = new Schema({
     username: String,
     email: { type: String, unique: true },
     password: String,
     phone: String,
-    role:{type:String,enum:['admin','user'],required:true}
+    role:{type:String,enums:['admin','user'],required:true}
 });
 
 userSchema.pre('save',function(){
@@ -28,9 +29,15 @@ userSchema.set('toJSON',{
         delete converted.__v;
 
     }
-})
+});
 export default model('User', userSchema);
 
+export const generatetoken=({user_id,role})=>{
+    const userPayload={user_id,role};
+    const secretKey=process.env.JWT_SECRET??'secretKey123';
+    const token=jwt.sign(userPayload,secretKey,{expiresIn:'5m'});
+    return token;
+}
 
 export const validateUser = {
  login: Joi.object({
@@ -44,7 +51,6 @@ export const validateUser = {
         password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
         repeat_password: Joi.ref('password'),
         phone: Joi.string().pattern(/^0?(([23489]{1}[0-9]{7})|[57]{1}[0-9]{8})+$/).required(),
-        role: Joi.string().valid('admin', 'user').required() // <-- חשוב
 
     })
 };

@@ -8,29 +8,30 @@ import cors from 'cors'
 import morgan from 'morgan';
 import { connectDB } from './config/db.js';
 
+(async () => {
+  const app=express();//server
+  config();
+  await connectDB();
+  app.use(morgan('dev'));
+  app.use(cors());
 
-const app=express();//server
-config();
-connectDB();
-app.use(morgan('dev'));
-app.use(cors());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  app.use(express.static('public'))
 
-app.use(express.static('public'))
+  app.use(addDate)
+  app.use(addDateForGet)
 
-app.use(addDate)
-app.use(addDateForGet)
+  app.use('/Books',router);
+  app.use('/Users',userRouter)
 
-app.use('/Books',router);
-app.use('/Users',userRouter)
-
-app.use(notFound)
-app.use(errorsHandler)
+  app.use(notFound)
+  app.use(errorsHandler)
 
 
-const port = process.env.PORT ?? 3000;
-app.listen(port, () => {
-    console.log(`Example app listening on http://localhost:${port}`)
-});
+  const port = process.env.PORT ?? 3000;
+  app.listen(port, () => {
+      console.log(`Example app listening on http://localhost:${port}`)
+  });
+})();
