@@ -17,5 +17,5 @@ export const auth=(req,res,next)=>{
 export const isAdmin=(req,res,next)=>{
     if(req.currentUser.role==="admin")
         return next();
-    return next({status:402,message:`Authorization failed (no permissions)`});
+    return next({status:401,message:`Authorization failed (no permissions)`});
 }

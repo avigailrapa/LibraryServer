@@ -1,15 +1,16 @@
-import User from "../models/users.model.js"
+import User, { generatetoken } from "../models/users.model.js"
 //login
 export const login = async(req, res, next) => {
  try {
     const {email,password}=req.body;
     const user=await User.findOne({email});
     if(!user|| !user.comparePasswords(password)){
-        return next({status:400,message:`email/passwors invalid`});
+        return next({status:403,message: `Authentication failed`});
     }
-    return res.json(user);         
+    const token=generatetoken({user_id:user._id,role:user.role});
+    return res.json({token:token});      
  } catch (error) {
-    next({message:error.message});   
+    next({status:403,message:`Authentication failed`});   
  }
 
 };
