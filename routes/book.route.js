@@ -3,6 +3,7 @@ import { getAllBooks, getBooksById, getBooksByName, addBook, updateBook,borrowin
 import { joiValidator } from "../middlewares/joi-validator.middleware.js";
 import { bookSchemas } from "../models/book.model.js";
 import { upload } from '../middlewares/upload-files.middleware.js';
+import { auth, isAdmin } from "../middlewares/checkAuth.middleware.js";
 
 const router=Router();
 
@@ -22,11 +23,10 @@ router.post('/', upload.single('img'), addBook);
 router.patch('/:id',updateBook)
 
 //ביצוע השאלה
-router.patch('/:id/:idCustomer',joiValidator(bookSchemas.borrowBook),borrowingBook)
+router.patch('/:id/:idCustomer',joiValidator(bookSchemas.borrowBook),auth,isAdmin,borrowingBook)
 
 //ביצוע החזרה
 router.patch('/:id/return',returningBook)
-
 
 //מחיקת ספר לפי id
 router.delete('/:id',deleteBook)
